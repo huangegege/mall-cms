@@ -1,12 +1,13 @@
 import { routerRedux } from 'dva/router';
-import { getPageQuery, setAuthority } from './utils/utils';
-import { fakeAccountLogin, getFakeCaptcha } from './service';
+import { getPageQuery } from './utils/utils';
+import { AccountLogin, getFakeCaptcha } from './service';
 import { Reducer } from 'redux';
 import { EffectsCommandMap } from 'dva';
 import { AnyAction } from 'redux';
+import { setToken } from '@/utils/utils';
 
 export interface IStateType {
-  status?: 'ok' | 'error';
+  ok: boolean;
   type?: string;
   currentAuthority?: 'user' | 'guest' | 'admin';
 }
@@ -32,18 +33,18 @@ const Model: ModelType = {
   namespace: 'userLogin',
 
   state: {
-    status: undefined,
+    ok: false,
   },
 
   effects: {
     *login({ payload }, { call, put }) {
-      const response = yield call(fakeAccountLogin, payload);
+      const response = yield call(AccountLogin, payload);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
       // Login successfully
-      if (response.status === 'ok') {
+      if (response.ok !== false) {
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
         let { redirect } = params as { redirect: string };
@@ -70,10 +71,10 @@ const Model: ModelType = {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
+      setToken(payload.token);
       return {
         ...state,
-        status: payload.status,
+        ok: payload.ok !== false,
         type: payload.type,
       };
     },

@@ -21,4 +21,13 @@ const isAntDesignProOrDev = (): boolean => {
   return isAntDesignPro();
 };
 
-export { isAntDesignProOrDev, isAntDesignPro, isUrl };
+const setToken = (token: string) => {
+  return localStorage.setItem('token', token);
+}
+
+const getToken = () => {
+  const token = localStorage.getItem('token');
+  return token ? `Token ${token}` : '';
+}
+
+export { isAntDesignProOrDev, isAntDesignPro, isUrl, setToken, getToken };

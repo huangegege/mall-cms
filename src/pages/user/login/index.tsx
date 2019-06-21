@@ -22,7 +22,7 @@ interface LoginState {
   autoLogin: boolean;
 }
 export interface FromDataType {
-  userName: string;
+  username: string;
   password: string;
   mobile: string;
   captcha: string;
@@ -103,7 +103,7 @@ class Login extends Component<
 
   render() {
     const { userLogin, submitting } = this.props;
-    const { status, type: loginType } = userLogin;
+    const { ok, type: loginType } = userLogin;
     const { type, autoLogin } = this.state;
     return (
       <div className={styles.main}>
@@ -116,19 +116,19 @@ class Login extends Component<
           }}
         >
           <Tab key="account" tab={formatMessage({ id: 'user-login.login.tab-login-credentials' })}>
-            {status === 'error' &&
+            {ok === false &&
               loginType === 'account' &&
               !submitting &&
               this.renderMessage(
                 formatMessage({ id: 'user-login.login.message-invalid-credentials' }),
               )}
             <UserName
-              name="userName"
-              placeholder={`${formatMessage({ id: 'user-login.login.userName' })}: admin or user`}
+              name="username"
+              placeholder={`${formatMessage({ id: 'user-login.login.username' })}: admin or user`}
               rules={[
                 {
                   required: true,
-                  message: formatMessage({ id: 'user-login.userName.required' }),
+                  message: formatMessage({ id: 'user-login.username.required' }),
                 },
               ]}
             />

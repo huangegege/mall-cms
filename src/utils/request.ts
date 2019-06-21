@@ -2,8 +2,10 @@
  * request 网络请求工具
  * 更详细的 api 文档: https://github.com/umijs/umi-request
  */
-import { extend } from 'umi-request';
+import { extend, RequestInterceptor } from 'umi-request';
 import { notification } from 'antd';
+
+import { getToken } from './utils';
 
 interface ResponseError<D = any> extends Error {
   name: string;
@@ -33,6 +35,7 @@ const codeMessage = {
  * 异常处理程序
  */
 const errorHandler = (error: ResponseError) => {
+  console.log('errorHandler', error);
   const { response = {} as Response } = error;
   const errortext = codeMessage[response.status] || response.statusText;
   const { status, url } = response;
@@ -41,6 +44,7 @@ const errorHandler = (error: ResponseError) => {
     message: `请求错误 ${status}: ${url}`,
     description: errortext,
   });
+  return response;
 };
 
 /**
@@ -49,6 +53,10 @@ const errorHandler = (error: ResponseError) => {
 const request = extend({
   errorHandler, // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie
+  headers: {
+    authorization: getToken(),
+  },
+  prefix: '/api',
 });
 
 export default request;

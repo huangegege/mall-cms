@@ -5,6 +5,8 @@ export default {
   'menu.login': 'Login',
   'menu.register': 'Register',
   'menu.register.result': 'Register Result',
+  'menu.product': 'product',
+  'menu.product.category-manage': 'Category Manage',
   'menu.dashboard': 'Dashboard',
   'menu.dashboard.analysis': 'Analysis',
   'menu.dashboard.monitor': 'Monitor',

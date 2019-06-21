@@ -4,7 +4,7 @@ import { EffectsCommandMap } from 'dva';
 import { AnyAction } from 'redux';
 
 export interface IStateType {
-  status?: 'ok' | 'error';
+  ok: boolean;
   currentAuthority?: 'user' | 'guest' | 'admin';
 }
 
@@ -28,7 +28,7 @@ const Model: ModelType = {
   namespace: 'userRegister',
 
   state: {
-    status: undefined,
+    ok: false,
   },
 
   effects: {
@@ -43,9 +43,10 @@ const Model: ModelType = {
 
   reducers: {
     registerHandle(state, { payload }) {
+      console.log('ok', payload.ok);
       return {
         ...state,
-        status: payload.status,
+        ok: payload.ok !== false,
       };
     },
   },

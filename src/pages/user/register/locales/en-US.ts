@@ -42,6 +42,7 @@ export default {
   'user-register.form.optional': ' (optional) ',
   'user-register.form.submit': 'Submit',
   'user-register.form.save': 'Save',
+  'user-register.userName.placeholder': 'userName',
   'user-register.email.placeholder': 'Email',
   'user-register.password.placeholder': 'Password',
   'user-register.confirm-password.placeholder': 'Confirm password',

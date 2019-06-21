@@ -100,20 +100,52 @@ export default {
   routes: [
     {
       path: '/',
-      component: '../layouts/BasicLayout',
-      Routes: ['src/pages/Authorized'],
-      authority: ['admin', 'user'],
+      component: '../layouts/BlankLayout',
       routes: [
         {
-          name: 'login',
-          path: '/user/login',
-          component: './user/login',
+          path: '/user',
+          component: '../layouts/UserLayout',
+          routes: [
+            {
+              path: '/user',
+              redirect: '/user/login',
+            },
+            {
+              name: 'login',
+              path: '/user/login',
+              component: './user/login',
+            },
+            {
+              name: 'register-result',
+              path: '/user/register-result',
+              component: './user/register-result',
+            },
+            {
+              name: 'register',
+              path: '/user/register',
+              component: './user/register',
+            },
+          ],
         },
         {
           path: '/',
-          name: 'welcome',
-          icon: 'smile',
-          component: './Welcome',
+          component: '../layouts/BasicLayout',
+          Routes: ['src/pages/Authorized'],
+          authority: ['admin', 'user'],
+          routes: [
+            {
+              path: '/product',
+              icon: 'table',
+              name: 'product',
+              routes: [
+                {
+                  path: '/product/category-list',
+                  name: 'category-manage',
+                  component: './product/category-list',
+                },
+              ],
+            },
+          ],
         },
       ],
     },
@@ -123,13 +155,13 @@ export default {
   theme: {
     'primary-color': primaryColor,
   },
-  // proxy: {
-  //   '/server/api/': {
-  //     target: 'https://preview.pro.ant.design/',
-  //     changeOrigin: true,
-  //     pathRewrite: { '^/server': '' },
-  //   },
-  // },
+  proxy: {
+    '/api/': {
+      target: 'http://localhost:3000/',
+      changeOrigin: true,
+      pathRewrite: { '^/api': '' },
+    },
+  },
   ignoreMomentLocale: true,
   lessLoaderOptions: {
     javascriptEnabled: true,
@@ -142,7 +174,7 @@ export default {
         resourcePath: string;
       },
       localIdentName: string,
-      localName: string
+      localName: string,
     ) => {
       if (
         context.resourcePath.includes('node_modules') ||

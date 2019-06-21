@@ -55,10 +55,11 @@ interface UserRegisterState {
 }
 
 export interface IUserRegisterParams {
-  mail: string;
+  username: string;
   password: string;
   confirm: string;
-  mobile: string;
+  email: string;
+  phone: string;
   captcha: string;
   prefix: string;
 }
@@ -94,8 +95,9 @@ class Register extends Component<
 
   componentDidUpdate() {
     const { userRegister, form } = this.props;
-    const account = form.getFieldValue('mail');
-    if (userRegister.status === 'ok') {
+    const account = form.getFieldValue('email');
+    console.log('userRegister', userRegister);
+    if (userRegister.ok) {
       message.success('注册成功！');
       router.push({
         pathname: '/user/register-result',
@@ -223,21 +225,17 @@ class Register extends Component<
         </h3>
         <Form onSubmit={this.handleSubmit}>
           <FormItem>
-            {getFieldDecorator('mail', {
+            {getFieldDecorator('username', {
               rules: [
                 {
                   required: true,
-                  message: formatMessage({ id: 'user-register.email.required' }),
-                },
-                {
-                  type: 'email',
-                  message: formatMessage({ id: 'user-register.email.wrong-format' }),
+                  message: formatMessage({ id: 'user-register.username.required' }),
                 },
               ],
             })(
               <Input
                 size="large"
-                placeholder={formatMessage({ id: 'user-register.email.placeholder' })}
+                placeholder={formatMessage({ id: 'user-register.username.placeholder' })}
               />,
             )}
           </FormItem>
@@ -294,6 +292,25 @@ class Register extends Component<
             )}
           </FormItem>
           <FormItem>
+            {getFieldDecorator('email', {
+              rules: [
+                {
+                  required: true,
+                  message: formatMessage({ id: 'user-register.email.required' }),
+                },
+                {
+                  type: 'email',
+                  message: formatMessage({ id: 'user-register.email.wrong-format' }),
+                },
+              ],
+            })(
+              <Input
+                size="large"
+                placeholder={formatMessage({ id: 'user-register.email.placeholder' })}
+              />,
+            )}
+          </FormItem>
+          <FormItem>
             <InputGroup compact>
               <Select
                 size="large"
@@ -304,7 +321,7 @@ class Register extends Component<
                 <Option value="86">+86</Option>
                 <Option value="87">+87</Option>
               </Select>
-              {getFieldDecorator('mobile', {
+              {getFieldDecorator('phone', {
                 rules: [
                   {
                     required: true,
