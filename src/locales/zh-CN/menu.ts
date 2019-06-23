@@ -7,6 +7,7 @@ export default {
   'menu.register.result': '注册结果',
   'menu.product': '商品',
   'menu.product.category-manage': '品类管理',
+  'menu.product.product-manage': '商品管理',
   'menu.dashboard': 'Dashboard',
   'menu.dashboard.analysis': '分析页',
   'menu.dashboard.monitor': '监控页',

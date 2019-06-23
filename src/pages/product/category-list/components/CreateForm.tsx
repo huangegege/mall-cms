@@ -29,10 +29,6 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
     })
   }
 
-  const filterOption = (input: string, option: any) => {
-    return option.props.children.indexOf(input) >= 0;
-  }
-
   return (
     <Modal
       destroyOnClose
@@ -52,8 +48,6 @@ const CreateForm: React.SFC<CreateFormProps> = props => {
             <Select
               style={{ width: '100%' }}
               placeholder="请选择所属品类"
-              optionFilterProp="children"
-              filterOption={filterOption}
             >
               <Option value="0">/所有</Option>
                 {

@@ -143,6 +143,11 @@ export default {
                   name: 'category-manage',
                   component: './product/category-list',
                 },
+                {
+                  path: '/product/product-list',
+                  name: 'product-manage',
+                  component: './product/product-list',
+                },
               ],
             },
           ],
