@@ -6,4 +6,11 @@ export default {
   'product-form.desc.required': '请输入商品描述！',
   'product-form.desc.placeholder': '请输入商品描述',
   'product-form.category.label': '所属分类',
+  'product-form.price.label': '商品价格',
+  'product-form.price.required': '请输入商品价格！',
+  'product-form.price.placeholder': '请输入商品价格',
+  'product-form.stock.label': '商品库存',
+  'product-form.stock.required': '请输入商品库存！',
+  'product-form.stock.placeholder': '请输入商品库存',
+  'product-form.image.label': '商品图片',
 }
