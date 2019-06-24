@@ -134,6 +134,10 @@ export default {
           authority: ['admin', 'user'],
           routes: [
             {
+              path: '/',
+              redirect: '/product/product-list',
+            },
+            {
               path: '/product',
               icon: 'table',
               name: 'product',
@@ -147,6 +151,12 @@ export default {
                   path: '/product/product-list',
                   name: 'product-manage',
                   component: './product/product-list',
+                },
+                {
+                  path: '/product/product-detail',
+                  name: 'product-detail',
+                  component: './product/product-form',
+                  hideInMenu: true,
                 },
               ],
             },

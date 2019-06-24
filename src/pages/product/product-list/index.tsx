@@ -11,6 +11,7 @@ import { Form, Divider, Card, Button, message } from 'antd';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import { SorterResult } from 'antd/lib/table';
 import SearchForm from './components/SearchForm';
+import Link from 'umi/link';
 
 const getValue = (obj: { [x: string]: string[] }) => {
   return Object.keys(obj).map(key => obj[key]).join(',');
@@ -142,10 +143,6 @@ class CategoryList extends Component<ProductListProps, ProductListState> {
     console.log(`editProduct id: ${id}`);
   }
 
-  handleAdd = () => {
-    console.log('handleAdd')
-  }
-
   handleSelectRows = (rows: ProductListItem[]) => {
     this.setState({ selectedRows: rows });
   }
@@ -222,13 +219,9 @@ class CategoryList extends Component<ProductListProps, ProductListState> {
           </div>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              <Button
-                icon="plus"
-                type="primary"
-                onClick={this.handleAdd}
-              >
-                添加商品
-              </Button>
+              <Link to="/product/product-detail">
+                <Button icon="plus" type="primary">添加商品</Button>
+              </Link>
             </div>
           </div>
           <StandardTable
