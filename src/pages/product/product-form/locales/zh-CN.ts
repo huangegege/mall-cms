@@ -13,4 +13,6 @@ export default {
   'product-form.stock.required': '请输入商品库存！',
   'product-form.stock.placeholder': '请输入商品库存',
   'product-form.image.label': '商品图片',
+  'form-basic-form.form.submit': '提交',
+  'product-form.detail.label': '商品详情',
 }

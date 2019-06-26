@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { createProduct, updateProduct, getProductDetail } from './service';
+import { createProduct, updateProduct, getProductDetail, uploadFile } from './service';
 import { EffectsCommandMap } from 'dva';
 import { AnyAction, Reducer } from 'redux';
 import { ProductDetail } from './data';
@@ -25,6 +25,7 @@ export interface ModelType {
     getFirstCategoryList: Effect;
     getSecondCategoryList: Effect;
     getProductDetail: Effect;
+    upload: Effect;
   };
   reducers: {
     saveFirstCategoryList: Reducer<CategoryListItem[]>;
@@ -89,6 +90,11 @@ const Model: ModelType = {
         type: 'saveProductDetail',
         payload: response,
       });
+    },
+    *upload({ payload, callback }, { call, put }) {
+      console.log('-----upload');
+      const response = yield call(uploadFile, payload);
+      callback(response);
     },
   },
   reducers: {

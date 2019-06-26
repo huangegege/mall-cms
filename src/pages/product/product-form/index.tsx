@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'dva';
 import { formatMessage, FormattedMessage } from 'umi-plugin-react/locale';
-import { Form, Input, Select, Button, Card, InputNumber, Row, Col, Upload, Icon, Modal } from 'antd';
+import { Form, Input, Select, Button, Card, InputNumber, Row, Col, Upload, Icon, Modal, message } from 'antd';
 import { PageHeaderWrapper } from '@ant-design/pro-layout';
 import styles from './style.less';
 import { FormComponentProps } from 'antd/es/form';
@@ -10,10 +10,14 @@ import { IStateType } from './model';
 import { CategoryListItem } from '../category-list/data';
 import { ProductDetail } from './data';
 import { getBase64 } from '@/utils/utils';
+import { EditorState, convertToRaw, ContentState, convertFromHTML } from 'draft-js';
+import { Editor } from 'react-draft-wysiwyg';
+import '../../../../node_modules/react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import draftToHtml from 'draftjs-to-html';
+import htmlToDraft from 'html-to-draftjs';
 
 const FormItem = Form.Item;
 const { Option } = Select;
-const { TextArea } = Input;
 
 interface ProductFormProps extends FormComponentProps {
   firstCategoryList: CategoryListItem[],
@@ -21,6 +25,7 @@ interface ProductFormProps extends FormComponentProps {
   productDetail: ProductDetail,
   submitting: boolean;
   dispatch: Dispatch<any>;
+  history: any;
 }
 
 interface ProductFormState {
@@ -29,6 +34,9 @@ interface ProductFormState {
   previewVisible: boolean,
   previewImage: string,
   fileList: any[],
+  detail: string,
+  richFileList: any[],
+  editorState: any,
 }
 
 @connect(
@@ -48,18 +56,14 @@ interface ProductFormState {
 )
 class ProductForm extends Component<ProductFormProps, ProductFormState> {
   state: ProductFormState = {
-    firstCategoryId: -1,
-    secondCategoryId: -1,
+    firstCategoryId: 0,
+    secondCategoryId: 0,
     previewVisible: false,
     previewImage: '',
-    fileList: [
-      {
-        uid: '-1',
-        name: 'xxx.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      },
-    ],
+    fileList: [],
+    detail: '',
+    richFileList: [],
+    editorState: EditorState.createEmpty(),
   }
 
   componentDidMount() {
@@ -70,16 +74,37 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
   }
 
   handleSubmit = (e: React.FormEvent) => {
-    const { dispatch, form } = this.props;
     e.preventDefault();
+    const { dispatch, form } = this.props;
+    const { firstCategoryId, secondCategoryId, fileList, editorState } = this.state;
     form.validateFieldsAndScroll((err, values) => {
       if (!err) {
+        if (fileList.length === 0) {
+          message.warning('请至少上传一张图片');
+          return;
+        }
+        const subImages: any[] = [];
+        fileList.forEach(file => {
+          subImages.push(file.response.uri);
+        });
+        const detail = draftToHtml(convertToRaw(editorState.getCurrentContent()));
+        const productData = {
+          ...values,
+          categoryId: secondCategoryId || firstCategoryId || 0,
+          subImages: subImages.join(','),
+          detail,
+        }
         dispatch({
           type: 'productForm/submit',
-          payload: values,
+          payload: productData,
+          callback: this.submitSuccess,
         });
       }
     });
+  }
+
+  submitSuccess = () => {
+    this.props.history.push('/product/product-list');
   }
 
   onFirstCategoryChange = (value: number) => {
@@ -108,7 +133,31 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
     });
   };
 
-  handleChange = ({ fileList }: any) => this.setState({ fileList });
+  handleChange = ({ fileList }: any) => {
+    this.setState({ fileList });
+  };
+
+  onEditorStateChange = (editorState: any) => {
+    console.log('onEditorStateChange', editorState);
+    this.setState({ editorState });
+  }
+
+  uploadImageCallBack = (file: any) => {
+    console.log('uploadImageCallBack');
+    const { dispatch } = this.props;
+    return new Promise(
+      (resolve, reject) => {
+        dispatch({
+          type: 'productForm/upload',
+          payload: file,
+          callback: (data: any) => {
+            console.log('data', data);
+            resolve({ data: { link: data.url } });
+          },
+        })
+      },
+    );
+  }
 
   render() {
     const {
@@ -119,7 +168,7 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
       productDetail,
     } = this.props;
 
-    const { fileList, previewVisible, previewImage } = this.state;
+    const { fileList, previewVisible, previewImage, detail, editorState } = this.state;
 
     const formItemLayout = {
       labelCol: {
@@ -226,7 +275,7 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
             </FormItem>
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.image.label" />}>
               <Upload
-                action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                action="/api/product/upload"
                 listType="picture-card"
                 fileList={fileList}
                 onPreview={this.handlePreview}
@@ -237,6 +286,21 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
               <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
                 <img alt="example" style={{ width: '100%' }} src={previewImage} />
               </Modal>
+            </FormItem>
+            <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.detail.label" />}>
+              <div className={styles.editorWrapper}>
+                <Editor
+                  editorState={editorState}
+                  editorClassName="wysiwyg-editor-wrapper"
+                  onEditorStateChange={this.onEditorStateChange}
+                  toolbar={{ image: { uploadCallback: this.uploadImageCallBack } }}
+                />
+              </div>
+            </FormItem>
+            <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
+              <Button type="primary" htmlType="submit" loading={submitting}>
+                <FormattedMessage id="form-basic-form.form.submit" />
+              </Button>
             </FormItem>
           </Form>
         </Card>
