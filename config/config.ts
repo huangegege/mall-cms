@@ -157,6 +157,7 @@ export default {
                   name: 'product-detail',
                   component: './product/product-form',
                   hideInMenu: true,
+                  // exact: true,
                 },
               ],
             },

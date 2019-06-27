@@ -100,9 +100,9 @@ class CategoryList extends Component<ProductListProps, ProductListState> {
             }
           </a>
           <Divider type="vertical" />
-          <a onClick={() => {this.checkProduct(record.id)}}>查看</a>
+          <Link to={{ pathname: '/product/product-detail', state: { type: 'check', id: record.id } }}>查看</Link>
           <Divider type="vertical" />
-          <a onClick={() => {this.editProduct(record.id)}}>编辑</a>
+          <Link to={{ pathname: '/product/product-detail', state: { type: 'edit', id: record.id } }}>编辑</Link>
         </Fragment>
       ),
     },
@@ -219,7 +219,7 @@ class CategoryList extends Component<ProductListProps, ProductListState> {
           </div>
           <div className={styles.tableList}>
             <div className={styles.tableListOperator}>
-              <Link to="/product/product-detail">
+              <Link to={{ pathname: '/product/product-detail', state: { type: 'create' }}} >
                 <Button icon="plus" type="primary">添加商品</Button>
               </Link>
             </div>

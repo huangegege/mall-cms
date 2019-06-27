@@ -67,10 +67,18 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
   }
 
   componentDidMount() {
-    const { dispatch } = this.props;
+    const { dispatch, history: { location } } = this.props;
     dispatch({
       type: 'productForm/getFirstCategoryList',
-    })
+    });
+    if (!location.state) return;
+    const { state: { type, id } } = location;
+    if (type === 'check' || type === 'edit') {
+      dispatch({
+        type: 'productForm/getProductDetail',
+        payload: id,
+      })
+    }
   }
 
   handleSubmit = (e: React.FormEvent) => {
@@ -138,12 +146,10 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
   };
 
   onEditorStateChange = (editorState: any) => {
-    console.log('onEditorStateChange', editorState);
     this.setState({ editorState });
   }
 
   uploadImageCallBack = (file: any) => {
-    console.log('uploadImageCallBack');
     const { dispatch } = this.props;
     return new Promise(
       (resolve, reject) => {
@@ -151,7 +157,6 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
           type: 'productForm/upload',
           payload: file,
           callback: (data: any) => {
-            console.log('data', data);
             resolve({ data: { link: data.url } });
           },
         })
