@@ -29,14 +29,14 @@ interface ProductFormProps extends FormComponentProps {
 }
 
 interface ProductFormState {
-  firstCategoryId: number,
-  secondCategoryId: number,
+  firstCategoryId: number | undefined,
+  secondCategoryId: number | undefined,
   previewVisible: boolean,
   previewImage: string,
   fileList: any[],
-  detail: string,
   richFileList: any[],
   editorState: any,
+  isCheck: boolean,
 }
 
 @connect(
@@ -56,29 +56,59 @@ interface ProductFormState {
 )
 class ProductForm extends Component<ProductFormProps, ProductFormState> {
   state: ProductFormState = {
-    firstCategoryId: 0,
-    secondCategoryId: 0,
+    firstCategoryId: undefined,
+    secondCategoryId: undefined,
     previewVisible: false,
     previewImage: '',
     fileList: [],
-    detail: '',
     richFileList: [],
     editorState: EditorState.createEmpty(),
+    isCheck: false,
   }
 
   componentDidMount() {
     const { dispatch, history: { location } } = this.props;
-    dispatch({
-      type: 'productForm/getFirstCategoryList',
-    });
+    dispatch({ type: 'productForm/getFirstCategoryList' });
+    dispatch({ type: 'productForm/resetProductDetail' });
     if (!location.state) return;
     const { state: { type, id } } = location;
     if (type === 'check' || type === 'edit') {
+      if (type === 'check') {
+        this.setState({ isCheck: true });
+      }
       dispatch({
         type: 'productForm/getProductDetail',
         payload: id,
-      })
+        callback: this.getDetailCallback,
+      });
     }
+  }
+
+  getDetailCallback = (detail: ProductDetail) => {
+    const firstCategoryId = detail.parentCategoryId === 0 ? detail.categoryId : detail.parentCategoryId;
+    const secondCategoryId = detail.parentCategoryId === 0 ? undefined : detail.categoryId;
+    if (firstCategoryId) {
+      this.loadSecondCategory(firstCategoryId);
+    }
+    const fileList: any[] = [];
+    const subImages = detail.subImages.split(',');
+    subImages.forEach(subImage => {
+      fileList.push({
+        uid: '-1',
+        name: 'xxx.png',
+        status: 'done',
+        url: detail.imageHost + subImage,
+        response: { uri: subImage },
+      })
+    });
+    const contentBlock = htmlToDraft(detail.detail);
+    const state = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+    this.setState({
+      firstCategoryId,
+      secondCategoryId,
+      fileList,
+      editorState: EditorState.createWithContent(state),
+    });
   }
 
   handleSubmit = (e: React.FormEvent) => {
@@ -116,16 +146,20 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
   }
 
   onFirstCategoryChange = (value: number) => {
-    const { dispatch } = this.props;
     this.setState({ firstCategoryId: value });
-    dispatch({
-      type: 'productForm/getSecondCategoryList',
-      payload: value,
-    })
+    this.loadSecondCategory(value);
   }
 
   onSecondCategoryChange = (value: number) => {
     this.setState({ secondCategoryId: value });
+  }
+
+  loadSecondCategory = (value: number) => {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'productForm/getSecondCategoryList',
+      payload: value,
+    });
   }
 
   handleCancel = () => this.setState({ previewVisible: false });
@@ -167,13 +201,21 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
   render() {
     const {
       submitting,
-      form: { getFieldDecorator, getFieldValue },
+      form: { getFieldDecorator },
       firstCategoryList,
       secondCategoryList,
       productDetail,
     } = this.props;
 
-    const { fileList, previewVisible, previewImage, detail, editorState } = this.state;
+    const {
+      fileList,
+      previewVisible,
+      previewImage,
+      editorState,
+      firstCategoryId,
+      secondCategoryId,
+      isCheck,
+    } = this.state;
 
     const formItemLayout = {
       labelCol: {
@@ -186,6 +228,15 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
         md: { span: 10 },
       },
     };
+
+    const detailItemLayout = {
+      ...formItemLayout,
+      wrapperCol: {
+        xs: { span: 30 },
+        sm: { span: 18 },
+        md: { span: 16 },
+      }
+    }
 
     const submitFormLayout = {
       wrapperCol: {
@@ -208,31 +259,38 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.name.label" />}>
               {
                 getFieldDecorator('name', {
+                  initialValue: productDetail.name,
                   rules: [
                     {
                       required: true,
                       message: formatMessage({ id: 'product-form.name.required' }),
                     },
                   ],
-                })(<Input placeholder={formatMessage({ id: 'product-form.name.placeholder' })} />)
+                })(<Input disabled={isCheck} placeholder={formatMessage({ id: 'product-form.name.placeholder' })} />)
               }
             </FormItem>
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.desc.label" />}>
               {
                 getFieldDecorator('subtitle', {
+                  initialValue: productDetail.subtitle,
                   rules: [
                     {
                       required: true,
                       message: formatMessage({ id: 'product-form.desc.required' }),
                     },
                   ],
-                })(<Input placeholder={formatMessage({ id: 'product-form.desc.placeholder' })} />)
+                })(<Input disabled={isCheck} placeholder={formatMessage({ id: 'product-form.desc.placeholder' })} />)
               }
             </FormItem>
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.category.label" />}>
               <Row gutter={8}>
                 <Col span={12}>
-                  <Select placeholder="请选择一级品类" onChange={this.onFirstCategoryChange}>
+                  <Select
+                    disabled={isCheck}
+                    value={firstCategoryId}
+                    placeholder="请选择一级品类"
+                    onChange={this.onFirstCategoryChange}
+                  >
                     {
                       firstCategoryList.map(category => (
                         <Option value={category.id} key={category.id}>{category.name}</Option>
@@ -243,7 +301,12 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
                 {
                   secondCategoryList.length > 0 &&
                   <Col span={12}>
-                    <Select placeholder="请选择二级品类" onChange={this.onSecondCategoryChange}>
+                    <Select
+                      disabled={isCheck}
+                      value={secondCategoryId}
+                      placeholder="请选择二级品类"
+                      onChange={this.onSecondCategoryChange}
+                    >
                       {
                         secondCategoryList.map(category => (
                           <Option value={category.id} key={category.id}>{category.name}</Option>
@@ -257,25 +320,39 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.price.label" />}>
               {
                 getFieldDecorator('price', {
+                  initialValue: productDetail.price,
                   rules: [
                     {
                       required: true,
                       message: formatMessage({ id: 'product-form.price.required' }),
                     },
                   ],
-                })(<InputNumber style={{ width: '100%' }} placeholder={formatMessage({ id: 'product-form.price.placeholder' })} />)
+                })(
+                  <InputNumber
+                    disabled={isCheck}
+                    style={{ width: '100%' }}
+                    placeholder={formatMessage({ id: 'product-form.price.placeholder' })}
+                  />,
+                )
               }
             </FormItem>
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.stock.label" />}>
               {
                 getFieldDecorator('stock', {
+                  initialValue: productDetail.stock,
                   rules: [
                     {
                       required: true,
                       message: formatMessage({ id: 'product-form.stock.required' }),
                     },
                   ],
-                })(<InputNumber style={{ width: '100%' }} placeholder={formatMessage({ id: 'product-form.stock.placeholder' })} />)
+                })(
+                  <InputNumber
+                    disabled={isCheck}
+                    style={{ width: '100%' }}
+                    placeholder={formatMessage({ id: 'product-form.stock.placeholder' })}
+                  />,
+                )
               }
             </FormItem>
             <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.image.label" />}>
@@ -286,27 +363,34 @@ class ProductForm extends Component<ProductFormProps, ProductFormState> {
                 onPreview={this.handlePreview}
                 onChange={this.handleChange}
               >
-                {fileList.length >= 4 ? null : uploadButton}
+                {fileList.length >= 4 || isCheck ? null : uploadButton}
               </Upload>
               <Modal visible={previewVisible} footer={null} onCancel={this.handleCancel}>
-                <img alt="example" style={{ width: '100%' }} src={previewImage} />
+                <img alt="preview" style={{ width: '100%' }} src={previewImage} />
               </Modal>
             </FormItem>
-            <FormItem {...formItemLayout} label={<FormattedMessage id="product-form.detail.label" />}>
-              <div className={styles.editorWrapper}>
-                <Editor
-                  editorState={editorState}
-                  editorClassName="wysiwyg-editor-wrapper"
-                  onEditorStateChange={this.onEditorStateChange}
-                  toolbar={{ image: { uploadCallback: this.uploadImageCallBack } }}
-                />
-              </div>
+            <FormItem {...detailItemLayout} label={<FormattedMessage id="product-form.detail.label" />}>
+              {
+                isCheck ?
+                <div className={styles.productDetail} dangerouslySetInnerHTML={{ __html: productDetail.detail }} /> :
+                <div className={styles.editorWrapper}>
+                  <Editor
+                    editorState={editorState}
+                    editorClassName="wysiwyg-editor-wrapper"
+                    onEditorStateChange={this.onEditorStateChange}
+                    toolbar={{ image: { uploadCallback: this.uploadImageCallBack } }}
+                  />
+                </div>
+              }
             </FormItem>
-            <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
-              <Button type="primary" htmlType="submit" loading={submitting}>
-                <FormattedMessage id="form-basic-form.form.submit" />
-              </Button>
-            </FormItem>
+            {
+              !isCheck &&
+               <FormItem {...submitFormLayout} style={{ marginTop: 32 }}>
+                <Button type="primary" htmlType="submit" loading={submitting}>
+                  <FormattedMessage id="form-basic-form.form.submit" />
+                </Button>
+              </FormItem>
+            }
           </Form>
         </Card>
       </PageHeaderWrapper>

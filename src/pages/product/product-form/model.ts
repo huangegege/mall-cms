@@ -28,32 +28,35 @@ export interface ModelType {
     upload: Effect;
   };
   reducers: {
-    saveFirstCategoryList: Reducer<CategoryListItem[]>;
-    saveSecondCategoryList: Reducer<CategoryListItem[]>;
-    saveProductDetail: Reducer<ProductDetail>;
+    saveFirstCategoryList: Reducer<IStateType>;
+    saveSecondCategoryList: Reducer<IStateType>;
+    saveProductDetail: Reducer<IStateType>;
+    resetProductDetail: Reducer<IStateType>;
   }
 }
+
+const initDetailState = {
+  id: 0,
+  categoryId: 0,
+  name: '',
+  subtitle: '',
+  mainImage: '',
+  subImages: '',
+  detail: '',
+  price: undefined,
+  stock: undefined,
+  status: 1,
+  createTime: new Date(),
+  updateTime: new Date(),
+  imageHost: '',
+  parentCategoryId: 0,
+};
 
 const Model: ModelType = {
   namespace: 'productForm',
 
   state: {
-    productDetail: {
-      id: 0,
-      categoryId: 0,
-      name: '',
-      subtitle: '',
-      mainImage: '',
-      subImages: '',
-      detail: '',
-      price: 0,
-      stock: 0,
-      status: 1,
-      createTime: new Date(),
-      updateTime: new Date(),
-      imageHost: '',
-      parentCategoryId: 0,
-    },
+    productDetail: { ...initDetailState },
     firstCategoryList: [],
     secondCategoryList: [],
   },
@@ -84,15 +87,15 @@ const Model: ModelType = {
         payload: response,
       });
     },
-    *getProductDetail({ payload }, { call, put }) {
+    *getProductDetail({ payload, callback }, { call, put }) {
       const response = yield call(getProductDetail, payload);
       yield put({
         type: 'saveProductDetail',
         payload: response,
       });
+      if (callback) callback(response);
     },
     *upload({ payload, callback }, { call, put }) {
-      console.log('-----upload');
       const response = yield call(uploadFile, payload);
       callback(response);
     },
@@ -113,7 +116,13 @@ const Model: ModelType = {
     saveProductDetail(state, action) {
       return {
         ...state,
-        ProductDetail: action.payload,
+        productDetail: action.payload,
+      }
+    },
+    resetProductDetail(state) {
+      return {
+        ...state,
+        productDetail: { ...initDetailState },
       }
     },
   },

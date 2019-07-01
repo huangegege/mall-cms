@@ -6,8 +6,8 @@ export interface ProductDetail {
   mainImage: string;
   subImages: string;
   detail: string;
-  price: number;
-  stock: number;
+  price: number | undefined;
+  stock: number | undefined;
   status: number;
   createTime: Date;
   updateTime: Date;

@@ -18,5 +18,5 @@ export const uploadFile = async (file: any) => {
 }
 
 export const getProductDetail = async (id: number) => {
-  return request.get(`/product/${id}`);
+  return request.get(`/product/manage/detail/${id}`);
 }
